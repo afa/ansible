@@ -1,9 +1,15 @@
+[local-free]
+localhost ansible_host=127.0.0.1
+
 [local]
 localhost ansible_host=127.0.0.1
 
 [location_server]
 l0 ansible_host=10.1.0.3 ansible_port=22 ansible_user=user
 l1 ansible_host=10.1.1.3 ansible_port=22 ansible_user=user
+
+[megarulez]
+project.megarulez.ru
 
 [web:children]
 local

@@ -1,0 +1,13 @@
+---
+- hosts: megarulez
+  sudo: no
+  tasks:
+    - name: stop apache
+      service: name=apache2 state=stopped
+    - name: stop mysql
+      service: name=mysql state=stopped
+    - name: stop mysql
+      service: name=mysql state=started
+    - name: start apache
+      service: name=apache2 state=started
+  
