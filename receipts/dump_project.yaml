@@ -1,0 +1,17 @@
+---
+- hosts: megarulez
+  sudo: no
+  tasks:
+  - name: init py mysql
+    apt: name=python-mysqldb state=present
+  - name: take date
+    command: date -Idate
+    register: date
+  - name: backup database
+    mysql_db:
+      state: dump
+      name: mg_project
+      target: "/root/{{ date['stdout'] }}.sql.gz"
+      login_host: localhost
+      login_user: "{{ mysql_login_user }}"
+      login_password: "{{ mysql_login_password }}"
