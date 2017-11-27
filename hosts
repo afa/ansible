@@ -1,8 +1,11 @@
+[vars]
+
+
 [local-free]
-localhost ansible_host=127.0.0.1
+localhost ansible_host=127.0.0.1 ansible_python_interpreter="/usr/bin/env python"
 
 [local]
-localhost ansible_host=127.0.0.1
+localhost ansible_host=127.0.0.1 ansible_python_interpreter="/usr/bin/env python"
 
 [location_server]
 l0 ansible_host=10.1.0.3 ansible_port=22 ansible_user=user

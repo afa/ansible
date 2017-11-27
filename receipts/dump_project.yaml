@@ -7,6 +7,8 @@
   - name: take date
     command: date -Idate
     register: date
+  - local_action: command echo item
+    with_items: date.stdout_lines
   - name: backup database
     mysql_db:
       state: dump
