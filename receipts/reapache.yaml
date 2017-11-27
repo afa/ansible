@@ -3,12 +3,16 @@
   sudo: no
   tasks:
     - name: stop
-      service: name={{ item }} state=stopped
+      service:
+        name: {{ item }}
+        state: stopped
       with_items:
         - apache2
         - mysql
     - name: start
-      service: name={{ item }} state=started
+      service:
+        name: {{ item }}
+        state: started
       with_items:
         - mysql
         - apache2
