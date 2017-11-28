@@ -20,7 +20,7 @@
       login_host: localhost
       login_user: "{{ mysql_login_user }}"
       login_password: "{{ mysql_login_password }}"
-- handlers:
+  handlers:
   - name: fetch dump
     fetch:
       src: "/root/{{ date['stdout'] }}.sql.gz"
