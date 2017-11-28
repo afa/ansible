@@ -3,13 +3,16 @@
   sudo: no
   tasks:
   - name: init py mysql
-    apt: name=python-mysqldb state=present
+    apt:
+      name: python-mysqldb
+      state: present
   - name: take date
     command: date -Idate
     register: date
   - local_action: command echo item
     with_items: date.stdout_lines
   - name: backup database
+    notify: fetch dump
     mysql_db:
       state: dump
       name: mg_project
@@ -17,3 +20,8 @@
       login_host: localhost
       login_user: "{{ mysql_login_user }}"
       login_password: "{{ mysql_login_password }}"
+- handlers:
+  - name: fetch dump
+    fetch:
+      src: "/root/{{ date['stdout'] }}.sql.gz"
+      dest: "/tmp/"
