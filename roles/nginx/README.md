@@ -36,3 +36,6 @@ Author Information
 ------------------
 
 An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+роль устанавливает свои переменные. смотрит переменные nginx_ -- nginx_sites_available, nginx_sites_enabled
+проверяет и ставит nginx_full, запускает демона, кладет конфиги для авайл, делает линки на енаблед, при
+изменениях конфигов рестартует, ротатит логи.
