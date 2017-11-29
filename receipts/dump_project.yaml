@@ -15,11 +15,11 @@
     notify: fetch dump
     mysql_db:
       state: dump
-      name: mg_project
+      name: "{{ vault_mysql_db }}"
       target: "/root/{{ date['stdout'] }}.sql.gz"
       login_host: localhost
-      login_user: "{{ mysql_login_user }}"
-      login_password: "{{ mysql_login_password }}"
+      login_user: "{{ vault_mysql_login }}"
+      login_password: "{{ vault_mysql_password }}"
   handlers:
   - name: fetch dump
     fetch:
