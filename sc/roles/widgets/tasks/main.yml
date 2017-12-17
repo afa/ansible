@@ -1,0 +1,99 @@
+---
+- name: create shared directory structure
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ widgets_dir }}/shared/{{ item }}"
+  with_items:
+    - "log"
+    - "tmp/pids"
+    - "tmp/sockets"
+
+- name: Get release timestamp
+  command: date +%Y%m%d%H%M%S
+  register: timestamp
+
+- name: Name release directory
+  command: echo "{{ widgets_dir }}/releases/{{ timestamp.stdout }}"
+  register: release_path
+
+- name: Create release directory
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ release_path.stdout }}"
+
+- name: checkout git repo into release directory
+  git:
+    repo: ssh://git@github.com/Solver-Club/widgets.git
+    dest: "{{ release_path.stdout }}"
+    version: master
+    accept_hostkey: yes
+
+- name: thin config
+  template:
+    src: "thin-config.yml.j2"
+    dest: "{{ release_path.stdout }}/config/thin/{{ widgets_config.environment }}.yml"
+    owner: rbdev
+    group: rbdev
+    mode: "0644"
+
+- name: create bundle dir
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ release_path.stdout }}/.bundle"
+
+- name: bundle config
+  copy:
+    src: widgets-bundle-config
+    dest: "{{ release_path.stdout }}/.bundle/config"
+
+- name: ugly chown
+  file:
+    path: /home/rbdev
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+
+- name: install dependencies
+  sudo_user: rbdev
+  shell: cd {{ release_path.stdout }}; . {{ rbenv_path }}/.rbenvrc && bundle install
+
+- name: fetch criteria
+  sudo_user: rbdev
+  shell: cd {{ release_path.stdout }}; . {{ rbenv_path }}/.rbenvrc && bundle exec rake fetch:criteria RACK_ENV={{ widgets_config.environment }} HOME={{ rbenv_home }}
+  tags:
+    - deploy
+
+- name: render criteria
+  sudo_user: rbdev
+  shell: cd {{ release_path.stdout }}; . {{ rbenv_path }}/.rbenvrc && bundle exec rake fetch:criteria render RACK_ENV={{ widgets_config.environment }} HOME={{ rbenv_home }}
+  tags:
+    - deploy
+
+- name: update app version
+  file:
+    state: link
+    path: "{{ widgets_dir }}/current"
+    src: "{{ release_path.stdout }}"
+  tags:
+    - deploy
+
+- name: add supervisor config
+  template:
+    src: "supervisor-widgets.conf.j2"
+    dest: "/etc/supervisor/conf.d/widgets.conf"
+  tags:
+    - install
+
+- name: reread supervisorctl
+  shell: /usr/bin/supervisorctl reread && /usr/bin/supervisorctl update && /usr/bin/supervisorctl stop widgets && /usr/bin/supervisorctl clear widgets && /usr/bin/supervisorctl remove widgets && /usr/bin/supervisorctl add widgets
+  tags:
+    - deploy

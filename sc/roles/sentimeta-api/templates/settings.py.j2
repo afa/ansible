@@ -1,0 +1,24 @@
+# -*- coding: utf-8 -*-
+
+# Flask config
+
+DEBUG = False
+JSON_AS_ASCII = False
+
+# Other setting
+
+VERSION = "0.1.0"
+
+DEFAULT_LANG = "en"
+
+MASTER_DB_URI = "postgresql://crowdsolver:crowdsolver@136.243.5.12:5432/master"
+
+# Elasticsearch
+
+ES_URI = "{{ elastic.uri }}"
+
+SPHERE_SEARCH_IDX_PREFIX = "prod02_{0}_{1}"
+
+# MongoDB
+MONGO_URI = "{{ mongo.uri }}"
+MONGO_NAME = "{{ mongo.dbname }}"

@@ -1,0 +1,4 @@
+---
+widgets_dir: "/home/rbdev/widgets"
+widgets_config:
+  environment: "production"

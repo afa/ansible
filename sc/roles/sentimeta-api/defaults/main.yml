@@ -1,0 +1,13 @@
+sentiwebapi_dir: "/home/webapi/sentiweb-api"
+pyenv_path: "/home/{{ pyenv_owner }}/.pyenv"
+pyenv_owner: "webapi"
+pyenv_python_versions:
+  - 3.4.2
+pyenv_virtualenvs:
+  - { venv_name: "latest", py_version: "3.4.2" }
+
+elastic:
+  uri: "127.0.0.1:9200"
+mongo:
+  uri: "mongodb://127.0.0.1:27017"
+  dbname: "prod_api_aws01"

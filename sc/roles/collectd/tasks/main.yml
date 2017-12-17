@@ -1,0 +1,25 @@
+- name: Install collectd package
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - "collectd"
+    - "ruby"
+
+- name: create dir for python plugins
+  file:
+    state: directory
+    path: "/usr/lib/collectd/plugins"
+    recurse: yes
+
+- name: install collectd_iostat_python plugin
+  copy:
+    src: "collectd_iostat_python.py"
+    dest: "/usr/lib/collectd/plugins/collectd_iostat_python.py"
+    mode: "0755"
+
+- name: Install collectd config
+  template:
+    src: "collectd.conf.j2"
+    dest: "/etc/collectd/collectd.conf"
+  notify:
+    - restart collectd

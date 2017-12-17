@@ -1,0 +1,72 @@
+---
+- name: Create webapi user
+  user:
+      name: webapi
+      shell: /bin/bash
+      groups: sudo
+      append: yes
+
+- name: Give user webapi passwordless sudo
+  copy:
+    src: passwordless_sudo_webapi
+    dest: /etc/sudoers.d/webapi
+    mode: "0644"
+
+- name: Install prerequisite packages
+  apt:
+    name: supervisor
+
+- name: Clone repo
+  git:
+    repo: ssh://git@github.com/Solver-Club/sentimeta-data-api.git
+    version: master
+    dest: "{{ sentiwebapi_dir }}"
+    accept_hostkey: True
+
+- name: Perform ugly chown
+  file:
+    path: /home/webapi
+    owner: webapi
+    group: webapi
+    recurse: yes
+
+- name: Nginx config for webapi
+  template:
+    src: "webapi-nginx.conf.j2"
+    dest: /etc/nginx/sites-available/webapi-nginx.conf
+
+- name: Simlink to nginx config
+  file:
+    path: /etc/nginx/sites-enabled/webapi-nginx.conf
+    src: "../sites-available/webapi-nginx.conf"
+    state: link
+
+- name: simlink to supervisor config
+  file:
+    path: /etc/supervisor/conf.d/webapi-supervisor.conf
+    src: "{{ sentiwebapi_dir }}/webapi-supervisor.conf"
+    state: link
+
+- name: install pip requirements
+  sudo_user: webapi
+  shell: . /home/webapi/.pyenv/.pyenvrc && pyenv activate {{ item.venv_name }} && pip install -r {{ sentiwebapi_dir }}/requirements.txt
+  with_items: pyenv_virtualenvs
+
+- name: setting.py
+  template:
+    src: settings.py.j2
+    dest: "{{ sentiwebapi_dir }}/webapi/settings.py"
+    owner: webapi
+    group: webapi
+    mode: "0644"
+
+- name: set virtualenv in gunicorn.sh
+  sudo_user: webapi
+  lineinfile:
+    dest: "{{ sentiwebapi_dir }}/gunicorn_start.sh"
+    regexp: "VENVDIR="
+    line: "VENVDIR=/home/webapi/.pyenv/versions/{{ item.venv_name }}"
+  with_items: pyenv_virtualenvs
+
+- name: reread supervisorctl
+  shell: /usr/bin/supervisorctl reread && /usr/bin/supervisorctl update && /usr/bin/supervisorctl stop sentiweb-api && /usr/bin/supervisorctl clear sentiweb-api && /usr/bin/supervisorctl remove sentiweb-api && /usr/bin/supervisorctl add sentiweb-api

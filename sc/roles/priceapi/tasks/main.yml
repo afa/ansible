@@ -1,0 +1,120 @@
+---
+- name: create shared directory structure
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ priceapi_dir }}/shared/{{ item }}"
+  with_items:
+    - "log"
+    - "bin"
+    - "bundle"
+    - "config/thin"
+    - "tmp/pids"
+    - "tmp/sockets"
+  tags:
+    - install
+
+- name: Get release timestamp
+  command: date +%Y%m%d%H%M%S
+  register: timestamp
+  tags:
+    - install
+    - deploy
+
+- name: Name release directory
+  command: echo "{{ priceapi_dir }}/releases/{{ timestamp.stdout }}"
+  register: release_path
+  tags:
+    - install
+    - deploy
+
+- name: Create release directory
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ release_path.stdout }}"
+  tags:
+    - install
+    - deploy
+
+- name: checkout git repo into release directory
+  git:
+    repo: ssh://git@github.com/Solver-Club/priceapi.git
+    dest: "{{ release_path.stdout }}"
+    version: master
+    accept_hostkey: yes
+  tags:
+    - install
+    - deploy
+
+- name: thin config
+  template:
+    src: "thin-config.yml.j2"
+    dest: "{{ priceapi_dir }}/shared/config/thin/{{ priceapi_config.environment }}.yml"
+    owner: rbdev
+    group: rbdev
+    mode: "0644"
+  tags:
+    - install
+
+- name: create bundle dir
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ release_path.stdout }}/.bundle"
+  tags:
+    - install
+    - deploy
+
+- name: bundle config
+  copy:
+    src: priceapi-bundle-config
+    dest: "{{ release_path.stdout }}/.bundle/config"
+  tags:
+    - install
+    - deploy
+
+- name: ugly chown
+  file:
+    path: /home/rbdev
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+  tags:
+    - install
+    - deploy
+
+- name: install dependencies
+  sudo_user: rbdev
+  shell: cd {{ release_path.stdout }}; . {{ rbenv_path }}/.rbenvrc && bundle install
+  tags:
+    - install
+    - deploy
+
+- name: update app version
+  file:
+    state: link
+    path: "{{ priceapi_dir }}/current"
+    src: "{{ release_path.stdout }}"
+  tags:
+    - install
+    - deploy
+
+- name: add supervisor config
+  template:
+    src: "supervisor-priceapi.conf.j2"
+    dest: "/etc/supervisor/conf.d/priceapi.conf"
+  tags:
+    - install
+
+- name: reread supervisorctl
+  shell: /usr/bin/supervisorctl reread && /usr/bin/supervisorctl update && /usr/bin/supervisorctl stop priceapi && /usr/bin/supervisorctl clear priceapi && /usr/bin/supervisorctl remove priceapi && /usr/bin/supervisorctl add priceapi
+  tags:
+    - install
+    - deploy

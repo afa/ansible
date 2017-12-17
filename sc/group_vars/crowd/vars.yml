@@ -1,0 +1,6 @@
+staging:
+  multi_zone: no
+prerelease:
+  multi_zone: no
+production:
+  multi_zone: yes

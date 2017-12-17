@@ -1,0 +1,29 @@
+- name: Ensure apt cache is up to date
+  apt:
+      update_cache: yes
+
+- name: Install useful packages
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - "vim"
+    - "git"
+    - "bash-completion"
+    - "tcpdump"
+    - "rsync"
+    - "telnet"
+    - "less"
+    - "htop"
+    - "iotop"
+    - "ioping"
+    - "iftop"
+    - "ifstat"
+    - "sysstat"
+    - "dstat"
+    - "debian-goodies"
+    - "zsh"
+
+#- name: install oh-my-zsh
+#  git:
+#    repo: https://github.com/robbyrussell/oh-my-zsh.git
+#    dest: /root/.oh-my-zsh

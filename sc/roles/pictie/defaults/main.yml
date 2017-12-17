@@ -1,0 +1,4 @@
+---
+pictie_dir: "/home/rbdev/pictie"
+pictie_config:
+  environment: "production"

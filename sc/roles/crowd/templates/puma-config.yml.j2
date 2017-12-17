@@ -1,0 +1,13 @@
+environment '{{ env }}'
+pidfile '{{ crowd_dir }}/shared/tmp/pids/puma.pid'
+bind 'tcp://127.0.0.1:9292'
+stdout_redirect '{{ crowd_dir }}/shared/log/puma.access.log', '{{ crowd_dir }}/shared/log/puma.error.log', true
+
+threads 4, 32
+workers 3
+on_worker_boot do
+  ActiveSupport.on_load(:active_record) do
+    ActiveRecord::Base.establish_connection
+  end
+end
+preload_app!

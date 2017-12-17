@@ -1,0 +1,65 @@
+---
+- name: Add zabbix repo key
+  apt_key:
+    url: http://repo.zabbix.com/zabbix-official-repo.key
+  tags:
+    - install
+
+- name: Add zabbix repository
+  apt_repository:
+    repo: 'deb http://repo.zabbix.com/zabbix/2.2/debian {{ ansible_distribution_release }} main'
+    state: present
+  tags:
+    - install
+
+- name: Install zabbix-agent package
+  apt:
+    name: "zabbix-agent"
+    update_cache: yes
+  tags:
+    - install
+
+- name: install curl
+  apt:
+    name: curl
+  tags:
+    - install
+
+- name: make scripts dir
+  file:
+    state: directory
+    path: "/etc/scripts"
+  tags:
+    - install
+
+- name: hostname script
+  copy:
+    src: "hostname.sh"
+    dest: "/etc/scripts/set-aws-public-hostname.sh"
+    mode: "0755"
+    owner: root
+    group: root
+  tags:
+    - install
+    - update
+
+- name: add hostname.sh to startup
+  file:
+    state: link
+    path: "/etc/init.d/set-aws-public-hostname.sh"
+    src: "/etc/scripts/set-aws-public-hostname.sh"
+  tags:
+    - install
+
+- name: add hostname.sh to startup
+  shell: update-rc.d set-aws-public-hostname.sh defaults && /etc/init.d/set-aws-public-hostname.sh
+  tags:
+    - install
+
+- name: Install zabbix-agent config
+  template:
+    src: "zabbix_agentd.conf.j2"
+    dest: "/etc/zabbix/zabbix_agentd.conf"
+  tags:
+    - install
+    - update

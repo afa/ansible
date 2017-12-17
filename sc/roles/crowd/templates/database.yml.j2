@@ -1,0 +1,29 @@
+knock:
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+  database: knock_db
+  host: prerelease-knockdb.caxurscsqxmj.us-west-2.rds.amazonaws.com
+  username: rbdev
+  password: osVoyCBs8VbR3gRZWrko
+
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+development:
+  <<: *default
+  database: crowd_dev
+
+test:
+  <<: *default
+  database: crowd_test
+
+production:
+  <<: *default
+  database: crowd_db
+  host: crowddb.{{ db_env }}.test.toprater.com
+  port: 5432
+  username: rbdev
+  password: {{ crowd_pass.production.db_password }}

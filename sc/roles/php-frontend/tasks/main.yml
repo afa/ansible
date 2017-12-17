@@ -1,0 +1,90 @@
+---
+- name: Ensure apt cache is up to date
+  apt:
+      update_cache: yes
+  tags:
+    - install
+
+- name: Install packages
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - "php5"
+    - "php5-fpm"
+    - "php5-pgsql"
+    - "php5-curl"
+    - "php5-mcrypt"
+  tags:
+    - install
+
+- name: move php to 9000 instead of unix socket
+  lineinfile:
+    dest: /etc/php5/fpm/pool.d/www.conf
+    regexp: "^listen\ ="
+    line: 'listen = 127.0.0.1:9000'
+  tags:
+    - install
+
+- name: restart php-fpm
+  service:
+    name: php5-fpm
+    state: restarted
+    enabled: yes
+  tags:
+    - install
+
+- name: clone git repo
+  git:
+    repo: ssh://git@github.com/Solver-Club/design02.git
+    dest: "{{ release_path }}"
+    version: "{{ release_version }}"
+    accept_hostkey: yes
+  tags:
+    - deploy
+    - install
+
+#- name: config.php
+#  template:
+#    src: "config.php.j2"
+#    dest: "{{ release_path }}/config/config.php"
+#  tags:
+#    - deploy
+#    - install
+#    - config
+
+- name: robots.txt
+  copy:
+    src: "robots.txt"
+    dest: "{{ release_path }}"
+  tags:
+    - install
+    - deploy
+    - config
+
+- name: bing site verification
+  template:
+    src: BingSiteAuth.xml
+    dest: "{{ release_path }}/BingSiteAuth.xml"
+  tags:
+    - install
+
+- name: google site verification
+  template:
+    src: google1cec63dbeae5083b.html
+    dest: "{{ release_path }}/google1cec63dbeae5083b.html"
+  tags:
+    - install
+
+- name: link dirs with v3 site
+  file:
+    state: link
+    path: "{{ release_path }}/{{ item }}"
+    src: "{{ toprater_dir }}/current/public/{{ item }}"
+  with_items:
+    - "css"
+    - "fonts"
+    - "i"
+    - "js"
+    - "assets"
+  tags:
+    - install

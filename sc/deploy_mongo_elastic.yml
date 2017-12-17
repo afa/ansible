@@ -1,0 +1,11 @@
+# This playbook allows to setup fresh provisioned vm with mongodb and elasticsearch
+
+- hosts: "tag_Name_mongodb_release_09_04_2015"
+  gather_facts: True
+  roles:
+    - role: default
+    - role: zabbix-agent
+    - role: collectd
+    - role: mongodb
+    - role: java
+    - role: elastic

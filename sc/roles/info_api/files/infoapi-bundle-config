@@ -1,0 +1,6 @@
+---
+BUNDLE_FROZEN: '1'
+BUNDLE_PATH: "/home/rbdev/info_api/shared/bundle"
+BUNDLE_BIN: "/home/rbdev/info_api/shared/bin"
+BUNDLE_WITHOUT: development:test
+BUNDLE_DISABLE_SHARED_GEMS: '1'

@@ -1,0 +1,12 @@
+---
+- name: Add java repository key
+  apt_key: data="{{ lookup('file', 'webupd8.asc') }}" state=present
+
+- name: Add java repository
+  apt_repository: repo='deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main' state=present
+
+- name: Accept java license
+  shell: echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
+
+- name: Install java package
+  apt: name=oracle-java8-installer state=latest update_cache=yes

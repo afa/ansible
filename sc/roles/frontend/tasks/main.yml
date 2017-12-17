@@ -1,0 +1,46 @@
+---
+- name: Install requirements
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - "redis-server"
+#    - "nodejs"
+    - "nginx"
+
+- name: Create rbdev user
+  user:
+      name: rbdev
+      shell: /bin/bash
+      groups: sudo
+      append: yes
+
+- name: Give user rbdev passwordless sudo
+  copy:
+    src: passwordless_sudo_rbdev
+    dest: /etc/sudoers.d/rbdev
+    mode: 644
+
+#- name: Clone sitemap repo
+#  sudo_user: rbdev
+#  git:
+#    repo: ssh://git@github.com/Solver-Club/sitemap.git
+#    dest: /home/rbdev/sitemap
+#    accept_hostkey: True
+
+- name: Perform ugly chown
+  file:
+    path: /home/rbdev/sitemap
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+
+#- name: Install nginx config
+#  template:
+#    src: "toprater-nginx.conf.j2"
+#    dest: "/etc/nginx/sites-available/toprater.conf"
+
+#- name: Create link to nginx config
+#  file:
+#    path: /etc/nginx/sites-enabled/toprater.conf
+#    src: ../sites-available/toprater.conf
+#    state: link

@@ -1,0 +1,11 @@
+[program:widgets]
+command={{ rbenv_path }}/shims/bundle exec thin -C {{ widgets_dir }}/current/config/thin/{{ widgets_config.environment }}.yml -e {{ widgets_config.environment }} start
+user=rbdev
+directory={{ widgets_dir }}/current
+process_name=%(program_name)s
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile={{ widgets_dir }}/shared/log/thin.log
+environment=USER="{{ rbenv_owner }}",HOME="{{ rbenv_home }}"

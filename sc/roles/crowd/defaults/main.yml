@@ -1,0 +1,17 @@
+---
+crowd_dir: "/home/rbdev/crowd"
+release_tag: "master"
+staging:
+  multi_zone: no
+prerelease:
+  multi_zone: no
+  database: "crowd_db"
+  db_host: "crowddb.prerelease.test.toprater.com"
+  db_port: "5432"
+  db_user: "rbdev"
+production:
+  multi_zone: yes
+  database: "crowd_db"
+  db_host: "crowddb.production.test.toprater.com"
+  db_port: "5432"
+  db_user: "rbdev"

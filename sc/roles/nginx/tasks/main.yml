@@ -1,0 +1,44 @@
+---
+- name: Ensure apt cache is up to date
+  apt:
+      update_cache: yes
+
+- name: Install nginx
+  apt:
+    name: nginx
+
+- name: Unlink default site
+  file:
+    dest: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: enable nginx status plugin
+  copy:
+    src: "status.conf"
+    dest: "/etc/nginx/sites-available/status.conf"
+
+- name: link nginx status plugin
+  file:
+    path: /etc/nginx/sites-enabled/status.conf
+    src: ../sites-available/status.conf
+    state: link
+  notify:
+    - reload nginx
+
+- name: increase ulimit
+  lineinfile:
+    dest: /etc/default/nginx
+    regexp: "ULIMIT="
+    line: 'ULIMIT="-n 300000"'
+
+- name: workers increase
+  lineinfile:
+    dest: /etc/nginx/nginx.conf
+    regexp: "^worker_processes"
+    line: 'worker_processes 8;'
+
+- name: worker_connections increase
+  lineinfile:
+    dest: /etc/nginx/nginx.conf
+    regexp: "worker_connections"
+    line: 'worker_connections 1024;'

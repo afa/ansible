@@ -1,0 +1,11 @@
+Server=zabbix.sentimeta.com
+ServerActive=zabbix.sentimeta.com
+StartAgents=5
+RefreshActiveChecks=60
+DebugLevel=3
+PidFile=/var/run/zabbix/zabbix_agentd.pid
+LogFile=/var/log/zabbix/zabbix_agentd.log
+Timeout=30
+
+# Include conf.d
+Include=/etc/zabbix/zabbix_agentd.d/

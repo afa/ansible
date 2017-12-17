@@ -1,0 +1,4 @@
+---
+priceapi_dir: "/home/rbdev/priceapi"
+priceapi_config:
+  environment: "production"

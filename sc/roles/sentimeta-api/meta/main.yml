@@ -1,0 +1,8 @@
+#---
+#dependencies:
+#- { role: pyenv }
+#- { role: postgresql }
+#- { role: mongodb }
+#- { role: elastic }
+#- { role: java }
+#- { role : nginx }

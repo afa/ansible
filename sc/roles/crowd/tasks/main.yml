@@ -1,0 +1,214 @@
+---
+- name: Install prerequisite packages
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - "supervisor"
+    - "redis-server"
+    - "libpq-dev"
+  tags:
+    - install
+
+#- name: Create postgresql user
+#  postgresql_user:
+#    name: rbdev
+#    password: "{{ crowd_pass.environment.db_password }}"
+#    role_attr_flags: CREATEDB,NOSUPERUSER
+#  when: environment.db_user is not defined
+#  tags:
+#    - install
+
+#- name: Create postgresql base
+#  postgresql_db:
+#    name: crowd_db
+#    owner: rbdev
+#    encoding: 'UTF-8'
+#    lc_collate: 'en_US.UTF-8'
+#    lc_ctype: 'en_US.UTF-8'
+#  when: environment.db_host is not defined
+#  tags:
+#    - install
+
+- name: create shared directory structure
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ crowd_dir }}/shared/{{ item }}"
+  with_items:
+    - "bin"
+    - "bundle"
+    - "config/puma"
+    - "log"
+    - "public/system"
+    - "tmp/pids"
+    - "tmp/sockets"
+    - "vendor/bundle"
+  tags:
+    - install
+
+- name: Get release timestamp
+  command: date +%Y%m%d%H%M%S
+  register: timestamp
+  tags:
+    - deploy
+
+- name: Name release directory
+  command: echo "{{ crowd_dir }}/releases/{{ timestamp.stdout }}"
+  register: release_path
+  tags:
+    - deploy
+
+- name: Create release directory
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ release_path.stdout }}"
+  tags:
+    - deploy
+
+- name: checkout git repo into release directory
+  git:
+    repo: ssh://git@github.com/Solver-Club/crowd.git
+    dest: "{{ release_path.stdout }}"
+    version: "{{ release_tag }}"
+    accept_hostkey: yes
+  tags:
+    - deploy
+
+- name: create other directory
+  file:
+    state: directory
+    recurse: yes
+    path: "{{ item }}"
+  with_items:
+    - "{{ release_path.stdout }}/vendor"
+    - "{{ release_path.stdout }}/public"
+  tags:
+    - deploy
+
+- name: copy db config to shared
+  template:
+    src: "database.yml.j2"
+    dest: "{{ crowd_dir }}/shared/config/database.yml"
+  tags:
+    - deploy
+    - config
+
+- name: delete bin dir and config/database.yml
+  file:
+    state: absent
+    path: "{{ item }}"
+  with_items:
+    - "{{ release_path.stdout }}/bin"
+    - "{{ release_path.stdout }}/config/database.yml"
+  tags:
+    - deploy
+
+- name: link
+  file:
+    state: link
+    path: "{{ release_path.stdout }}/{{ item }}"
+    src: "{{ crowd_dir }}/shared/{{ item }}"
+  with_items:
+    - "log"
+    - "bin"
+    - "tmp"
+    - "vendor/bundle"
+    - "public/system"
+    - "config/database.yml"
+  tags:
+    - deploy
+
+- name: puma config
+  template:
+    src: "puma-config.yml.j2"
+    dest: "{{ crowd_dir }}/shared/config/puma/{{ env }}.yml"
+    owner: rbdev
+    group: rbdev
+    mode: "0644"
+  tags:
+    - install
+    - config
+
+- name: create bundle dir
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ release_path.stdout }}/.bundle"
+  tags:
+    - deploy
+
+- name: bundle config
+  copy:
+    src: crowd-bundle-config
+    dest: "{{ release_path.stdout }}/.bundle/config"
+  tags:
+    - deploy
+
+- name: ugly chown
+  file:
+    path: /home/rbdev
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+  tags:
+    - deploy
+
+- name: install dependencies
+  sudo: yes
+  sudo_user: rbdev
+  shell: cd {{ release_path.stdout }}; . {{ rbenv_path }}/.rbenvrc && bundle install
+  tags:
+    - deploy
+
+- name: run db migrations
+  sudo: yes
+  sudo_user: rbdev
+  shell: cd {{ release_path.stdout }}; . {{ rbenv_path }}/.rbenvrc && bundle exec rake db:migrate RAILS_ENV={{ env }}
+  tags:
+    - deploy
+
+- name: update app version
+  file:
+    state: link
+    path: "{{ crowd_dir }}/current"
+    src: "{{ release_path.stdout }}"
+  tags:
+    - deploy
+
+- name: add supervisor config
+  template:
+    src: "supervisor-crowd.conf.j2"
+    dest: "/etc/supervisor/conf.d/crowd.conf"
+  tags:
+    - install
+
+- name: nginx config
+  template:
+    src: "crowd-nginx.conf.j2"
+    dest: /etc/nginx/sites-available/crowd.conf
+  tags:
+    - install
+    - config
+
+- name: simlink to nginx config
+  file:
+    path: /etc/nginx/sites-enabled/crowd.conf
+    src: "../sites-available/crowd.conf"
+    state: link
+  notify: reload nginx
+  tags:
+    - install
+
+- name: reread supervisorctl
+  shell: /usr/bin/supervisorctl reread && /usr/bin/supervisorctl crowd && /usr/bin/supervisorctl stop crowd && /usr/bin/supervisorctl clear crowd && /usr/bin/supervisorctl remove crowd && /usr/bin/supervisorctl add crowd
+  tags:
+    - deploy
+    - config

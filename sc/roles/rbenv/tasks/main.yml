@@ -1,0 +1,82 @@
+---
+- name: Ensure apt cache is up to date
+  apt:
+      update_cache: yes
+
+- name: Install prerequisite packages
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - "git"
+    - "build-essential"
+    - "openssl"
+    - "libssl-dev"
+    - "curl"
+    - "libssl-dev"
+    - "zlib1g-dev"
+    - "libbz2-dev"
+    - "libreadline-dev"
+    - "libsqlite3-dev"
+
+- name: Create user if missing
+  user:
+    name: "{{ rbenv_owner }}"
+    shell: /bin/bash
+    home: "/home/{{ rbenv_owner }}"
+
+- name: Install RbEnv
+  sudo_user: "{{ rbenv_owner }}"
+  git:
+    repo: https://github.com/sstephenson/rbenv.git
+    dest: "{{ rbenv_path }}"
+
+- name: Install ruby-build
+  sudo_user: "{{ rbenv_owner }}"
+  git:
+    repo: https://github.com/sstephenson/ruby-build.git
+    dest: "{{ rbenv_path }}/plugins/ruby-build"
+
+- name: Install .rbenvrc
+  sudo_user: "{{ rbenv_owner }}"
+  template:
+    src: ".rbenvrc.j2"
+    dest: "{{ rbenv_path }}/.rbenvrc"
+    owner: "{{ rbenv_owner }}"
+    group: "{{ rbenv_owner }}"
+    mode: "0644"
+
+- name: ugly chown
+  file:
+    path: "/home/{{ rbenv_owner }}"
+    owner: "{{ rbenv_owner }}"
+    group: "{{ rbenv_owner }}"
+    recurse: yes
+
+- name: Modify .bashrc
+  sudo_user: "{{ rbenv_owner }}"
+  lineinfile: dest="/home/{{ rbenv_owner }}/.bashrc"
+              regexp="\.rbenvrc$"
+              line="source {{ rbenv_path }}/.rbenvrc"
+              state=present
+
+- name: Checks if target ruby is installed
+  sudo_user: "{{ rbenv_owner }}"
+  shell: . {{ rbenv_path }}/.rbenvrc && rbenv versions | grep {{ ruby_version }} | tr '*' ' ' | sed -e 's/\s\+//' | cut -f1 -d' '
+  register: ruby_is_installed
+
+- name: Installs ruby
+  sudo_user: "{{ rbenv_owner }}"
+  shell: . {{ rbenv_path }}/.rbenvrc && rbenv install {{ ruby_version }}
+  when: ruby_is_installed.stdout != ruby_version
+  async: 600
+  poll: 30
+
+- name: Set ruby version
+  sudo_user: "{{ rbenv_owner }}"
+  copy:
+    src: "version"
+    dest: "{{ rbenv_path }}/version"
+
+- name: Install bundle
+  sudo_user: "{{ rbenv_owner }}"
+  shell: . {{ rbenv_path }}/.rbenvrc && gem install bundler

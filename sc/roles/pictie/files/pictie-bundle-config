@@ -1,0 +1,6 @@
+---
+BUNDLE_FROZEN: '1'
+BUNDLE_PATH: "/home/rbdev/pictie/shared/bundle"
+BUNDLE_BIN: "/home/rbdev/pictie/shared/bin"
+BUNDLE_WITHOUT: development:test
+BUNDLE_DISABLE_SHARED_GEMS: '1'

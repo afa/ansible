@@ -1,0 +1,11 @@
+[program:toprater]
+command={{ rbenv_path }}/shims/bundle exec puma -C {{ toprater_dir }}/shared/config/puma/{{ toprater_config.environment }}.yml
+user=rbdev
+directory={{ toprater_dir }}/current
+process_name=%(program_name)s
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile={{ toprater_dir }}/shared/log/puma.log
+environment=SECRET_KEY_BASE="{{ toprater_secret_key_base }}",USER="{{ rbenv_owner }}",HOME="{{ rbenv_home }}"

@@ -1,0 +1,11 @@
+[program:pictie]
+command={{ rbenv_path }}/shims/bundle exec thin -C {{ pictie_dir }}/shared/config/thin/{{ pictie_config.environment }}.yml -e {{ pictie_config.environment }} start
+user=rbdev
+directory={{ pictie_dir }}/current
+process_name=%(program_name)s
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile={{ pictie_dir }}/shared/log/thin.log
+environment=RACK_ENV={{ pictie_config.environment }},HOME="{{ rbenv_home }}"

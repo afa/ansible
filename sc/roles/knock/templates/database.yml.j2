@@ -1,0 +1,20 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+development:
+  <<: *default
+  database: knock_dev
+
+staging:
+  <<: *default
+  database: knock_db
+
+production:
+  <<: *default
+  database: knock_db
+  username: rbdev
+  password: {{ knock_pass.production.db_password }}
+  host: prerelease-knockdb.caxurscsqxmj.us-west-2.rds.amazonaws.com
+  port: 5432

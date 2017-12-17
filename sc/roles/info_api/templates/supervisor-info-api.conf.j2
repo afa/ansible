@@ -1,0 +1,11 @@
+[program:info_api]
+command={{ rbenv_path }}/shims/bundle exec thin -C {{ infoapi_dir }}/shared/config/thin/{{ info_api_config.environment }}.yml -e {{ info_api_config.environment }} start
+user=rbdev
+directory={{ infoapi_dir }}/current
+process_name=%(program_name)s
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile={{ infoapi_dir }}/shared/log/thin.log
+environment=RACK_ENV={{ info_api_config.environment }},HOME="{{ rbenv_home }}"

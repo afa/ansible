@@ -1,0 +1,11 @@
+[program:crowd]
+command={{ rbenv_path }}/shims/bundle exec puma -C {{ crowd_dir }}/shared/config/puma/{{ env }}.yml
+user=rbdev
+directory={{ crowd_dir }}/current
+process_name=%(program_name)s
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile={{ crowd_dir }}/shared/log/puma.log
+environment=SECRET_KEY_BASE="{{ crowd_secret_key_base }}"

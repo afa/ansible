@@ -1,0 +1,34 @@
+# This playbook provision specified amount of medium instances for fronts and api applications
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Provision a set of instances
+      ec2:
+         key_name: sentimeta-root-key
+         group: ['frontend', 'elastic', 'crowd']
+         instance_type: t2.micro
+         image: "ami-3d9cc00d"
+         wait: true
+         exact_count: 2
+         volumes:
+           - device_name: /dev/xvda
+             device_type: gp2
+             volume_size: 10
+             delete_on_termination: false
+         count_tag:
+            Name: crowd_multi_test
+         instance_tags:
+            Name: crowd_multi_test
+         region: us-west-2
+      register: ec2
+
+    - name: Add all instance public IPs to host group
+      add_host: hostname={{ item.public_ip }} groupname=ec2hosts
+      with_items: ec2.instances
+
+    - name: Wait for SSH to come up
+      wait_for: host={{ item.public_dns_name }} port=22 delay=60 timeout=320 state=started
+      with_items: ec2.instances

@@ -1,0 +1,13 @@
+---
+chdir: "{{ knock_dir }}/current"
+environment: staging
+socket: '{{ knock_dir }}/shared/tmp/sockets/thin.sock'
+timeout: 30
+log: "{{ knock_dir }}/shared/log/thin.log"
+pid: '{{ knock_dir }}/shared/tmp/pids/thin.pid'
+max_conns: 1024
+max_persistent_conns: 100
+require: []
+wait: 30
+threadpool_size: 20
+user: rbdev

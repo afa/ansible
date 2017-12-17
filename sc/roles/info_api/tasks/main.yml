@@ -1,0 +1,210 @@
+---
+- name: Create postgresql user
+  postgresql_user:
+    name: rbdev
+    password: "{{ rbdev_postgresql_password }}"
+    role_attr_flags: CREATEDB,NOSUPERUSER
+  tags:
+    - install
+
+- name: Create postgresql base
+  postgresql_db:
+    name: sentimeta_info_api
+    owner: rbdev
+    encoding: 'UTF-8'
+    lc_collate: 'en_US.UTF-8'
+    lc_ctype: 'en_US.UTF-8'
+  tags:
+    - install
+
+- name: create shared directory structure
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ infoapi_dir }}/shared/{{ item }}"
+  with_items:
+    - "tmp/pids"
+    - "tmp/sockets"
+    - "config/thin"
+    - "log"
+    - "bin"
+    - "bundle"
+    - "vendor"
+  tags:
+    - install
+
+- name: Get release timestamp
+  command: date +%Y%m%d%H%M%S
+  register: timestamp
+  tags:
+    - deploy
+    - install
+
+- name: Name release directory
+  command: echo "{{ infoapi_dir }}/releases/{{ timestamp.stdout }}"
+  register: release_path
+  tags:
+    - deploy
+    - install
+
+- name: Create release directory
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ release_path.stdout }}"
+  tags:
+    - deploy
+    - install
+
+- name: checkout git repo into release directory
+  git:
+    repo: ssh://git@github.com/Solver-Club/infoapi.git
+    dest: "{{ release_path.stdout }}"
+    version: "{{ release_tag }}"
+    accept_hostkey: yes
+  tags:
+    - deploy
+    - install
+
+- name: link log directory
+  file:
+    state: link
+    path: "{{ release_path.stdout }}/log"
+    src: "{{ infoapi_dir }}/shared/log"
+  tags:
+    - deploy
+    - install
+
+- name: create tmp directory
+  file:
+    state: directory
+    recurse: yes
+    path: "{{ release_path.stdout }}/tmp"
+  tags:
+    - deploy
+    - install
+
+- name: link pids directory
+  file:
+    state: link
+    path: "{{ release_path.stdout }}/tmp/pids"
+    src: "{{ infoapi_dir }}/shared/tmp/pids"
+  tags:
+    - deploy
+    - install
+
+- name: link sockets directory
+  file:
+    state: link
+    path: "{{ release_path.stdout }}/tmp/sockets"
+    src: "{{ infoapi_dir }}/shared/tmp/sockets"
+  tags:
+    - deploy
+    - install
+
+- name: create config
+  template:
+    src: "info-api.app.yml.j2"
+    dest: "{{ infoapi_dir }}/shared/config/app.yml"
+    owner: rbdev
+    group: rbdev
+    mode: "0644"
+  tags:
+    - deploy
+    - install
+
+- name: remove config
+  file:
+    path: "{{ release_path.stdout }}/config/app.yml"
+    state: absent
+  tags:
+    - deploy
+    - install
+
+- name: link config
+  file:
+    state: link
+    path: "{{ release_path.stdout }}/config/app.yml"
+    src: "{{ infoapi_dir }}/shared/config/app.yml"
+  tags:
+    - deploy
+    - install
+
+- name: thin config
+  template:
+    src: "thin-config.yml.j2"
+    dest: "{{ infoapi_dir }}/shared/config/thin/{{ info_api_config.environment }}.yml"
+    owner: rbdev
+    group: rbdev
+    mode: "0644"
+  tags:
+    - deploy
+    - install
+
+- name: create bundle dir
+  file:
+    state: directory
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+    path: "{{ release_path.stdout }}/.bundle"
+  tags:
+    - deploy
+    - install
+
+- name: bundle config
+  copy:
+    src: infoapi-bundle-config
+    dest: "{{ release_path.stdout }}/.bundle/config"
+  tags:
+    - deploy
+    - install
+
+- name: ugly chown
+  file:
+    path: /home/rbdev
+    owner: rbdev
+    group: rbdev
+    recurse: yes
+  tags:
+    - deploy
+    - install
+
+- name: install dependencies
+  sudo_user: rbdev
+  shell: cd {{ release_path.stdout }}; . {{ rbenv_path }}/.rbenvrc && bundle install
+  tags:
+    - deploy
+    - install
+
+- name: run db migrations
+  sudo_user: rbdev
+  shell: cd {{ release_path.stdout }}; . {{ rbenv_path }}/.rbenvrc && bundle exec rake maintenance:db:migrate RAILS_ENV={{ info_api_config.environment }}
+  tags:
+    - deploy
+    - install
+
+- name: update app version
+  file:
+    state: link
+    path: "{{ infoapi_dir }}/current"
+    src: "{{ release_path.stdout }}"
+  tags:
+    - deploy
+    - install
+
+- name: add supervisor config
+  template:
+    src: "supervisor-info-api.conf.j2"
+    dest: "/etc/supervisor/conf.d/info_api.conf"
+  tags:
+    - deploy
+    - install
+
+# Postponed due to necessity to manually insert postgres dump for sentimeta_info_api base
+#- name: reread supervisorctl
+#  shell: /usr/bin/supervisorctl reread && /usr/bin/supervisorctl update && /usr/bin/supervisorctl stop info_api && /usr/bin/supervisorctl clear info_api && /usr/bin/supervisorctl remove info_api && /usr/bin/supervisorctl add info_api

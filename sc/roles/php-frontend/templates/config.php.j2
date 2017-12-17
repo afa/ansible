@@ -1,0 +1,69 @@
+<?php
+define("WWW_HOME", "/");
+define("ROOT_HOME", dirname(__FILE__) .'/../');
+
+define("SHOW_FULL_REVIEWS", 1);
+
+define( "GOOGLE_MAPS_API_KEY"      , "AIzaSyCf-855OrsG1iPpBwpaoXh9ebeN0tPeZsQ" );
+define( "FACEBOOK_CLIENT_ID"       , "439533746200266"                         );
+define( "FACEBOOK_CLIENT_SECRET"   , "a1eefbc1a6ab81e0baf4ff8132e5a883"        );
+
+define(
+    'SOCIAL_APPS',
+    serialize(
+        array(
+            'production' => array(
+                'google_plus' => array(
+                    'id'  => '29511162814-k3dnk117e23qgp0giiokom4tov5ftifo.apps.googleusercontent.com',
+                    'key' => 'AIzaSyCtINKTw6ddAivh-W8eqdq57Af_fYs3AAI'
+                ),
+                'facebook' => array(
+                    'id'  => '1576246925945571',
+                    'key' => 'e1e151a74fca65cc68d4b71c9e1d3e80'
+                ),
+                'twitter' => array(
+                    'id'  => 'lYBYOWLPFONzKanWGh5NIME9u',
+                    'key' => 'V0mlQPfxhk1gcDPskrmOcxvA0H6Oi8UpGZ7vyvMiC5AbAtnriY'
+                )
+            ),
+            'staging' => array(
+                'google_plus' => array(
+                    'id'  => '29511162814-pg73rr3d9mt54t5dccrbb17rjv63i1k8.apps.googleusercontent.com',
+                    'key' => 'AIzaSyAkZj95_B5A-DAyRTcAS8diyMoblezb794'
+                ),
+                'facebook' => array(
+                    'id'  => '1529910983936462',
+                    'key' => '235f765b931ed1268497eb89654332fc'
+                ),
+                'twitter' => array(
+                    'id'  => 'kxa2M6tVJNKsP74H31dlPqUNe',
+                    'key' => 'lDlvfUmnSbRJqdKO8AHv1pUbUortjcAzLgG9ZQRInHKZvuu5JJ'
+                )
+            ),
+            'development' => array(
+                'google_plus' => array(
+                    'id'  => '984428913133-raoodmut0m8gnds51o99r5gne66pdtmk.apps.googleusercontent.com',
+                    'key' => 'AIzaSyB1rCQyrYuTJKi2rskhtVpEzoi5U3U8AZ0'
+                ),
+                'facebook' => array(),
+                'twitter' => array(
+                    'id'  => 'EOJhOGlAT2znODNu5A3Tp6fBP',
+                    'key' => 'fbmukcOBSP8XBXNme7eLu8Tr6WeV7b8Q6LV5yDbbr6ES8ihYv1'
+                )
+            )
+        )
+    )
+);
+
+define( "SESSION_COOKIE_LIFE_TIME"    , 3600 * 24 * 30     );
+define( "PERSISTENT_COOKIE_LIFE_TIME" , 3600 * 24 * 30 * 6 );
+
+if ($_SERVER['HTTP_HOST'] == 'toprater.com')                 { define( "API_EXTERNAL_HOST", "https://api.toprater.com"            ); }
+elseif ($_SERVER['HTTP_HOST'] == 'fake.sentimeta.com')       { define( "API_EXTERNAL_HOST", "http://staging-api.sentimeta.com"    ); }
+elseif ($_SERVER['HTTP_HOST'] == 'prerelease.sentimeta.com') { define( "API_EXTERNAL_HOST", "http://prerelease-api.sentimeta.com" ); }
+else                                                         { define( "API_EXTERNAL_HOST", "http://staging-api.sentimeta.com"    ); }
+
+if ($_SERVER['HTTP_HOST'] == 'fake.sentimeta.com')     { define( "API_IP", "admin.sentimeta.com/fake_api" ); }
+else                                                   { define( "API_IP", "127.0.0.1"                      ); }
+define("IS_USING_FAKE_API", "0");
+?>

@@ -1,0 +1,8 @@
+---
+# defaults file for pyenv
+pyenv_path: "/home/{{ pyenv_owner }}/.pyenv"
+pyenv_owner: "webapi"
+pyenv_python_versions:
+  - 3.4.2
+pyenv_virtualenvs:
+  - { venv_name: "latest", py_version: "3.4.2" }

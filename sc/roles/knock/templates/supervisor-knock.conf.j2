@@ -1,0 +1,11 @@
+[program:knock]
+command={{ rbenv_path }}/shims/bundle exec thin -C {{ knock_dir }}/current/config/thin/{{ environment }}.yml -e {{ environment }} start
+user=rbdev
+directory={{ knock_dir }}/current
+process_name=%(program_name)s
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile={{ knock_dir }}/shared/log/thin.log
+environment=USER="{{ rbenv_owner }}",HOME="{{ rbenv_home }}"

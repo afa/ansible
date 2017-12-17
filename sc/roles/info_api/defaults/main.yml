@@ -1,0 +1,7 @@
+---
+infoapi_dir: "/home/rbdev/info_api"
+info_api_config:
+  environment: "production"
+  fapi_prefix: ""
+
+

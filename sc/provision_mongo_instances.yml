@@ -1,0 +1,63 @@
+# This playbook provision specified amount of large (and expensive!) instances for mongodb
+
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Provision a set of instances
+      ec2:
+         key_name: sentimeta-root-key
+         region: "{{ ec2_default_region }}"
+         group: ['mongo', 'elastic']
+         instance_type: r3.xlarge
+         image: "ami-3d9cc00d"
+         wait: true
+         exact_count: 1
+         volumes:
+           - device_name: /dev/xvda
+             device_type: gp2
+             volume_size: 20
+             delete_on_termination: false
+
+# if mongodb data was unchanges since previous release
+           - device_name: /dev/xvdf
+#             snapshot: snap-b6164737
+             device_type: io1
+             iops: 1000
+             volume_size: 200
+             delete_on_termination: false
+
+         count_tag:
+            Name: mongodb_release_09_04_2015
+         instance_tags:
+            Name: mongodb_release_09_04_2015
+         region: us-west-2
+      register: ec2
+
+    - name: adding EIP to the instance
+      ec2_eip:
+        instance_id: "{{ item }}"
+        region: "{{ ec2_default_region }}"
+        in_vpc: yes
+      with_items: ec2.instance_ids
+      register: eip
+
+    - name: creating/updating DNS record
+      route53:
+        command: create
+        zone: test.toprater.com
+        record: mongodb01.test.toprater.com
+        type: A
+        value: "{{ item.public_ip }}"
+        ttl: 300
+      with_items: eip.results
+      register: route53
+
+    - name: Add all instance public IPs to host group
+      add_host: hostname={{ item.public_ip }} groupname=ec2hosts
+      with_items: ec2.instances
+
+    - name: Wait for SSH to come up
+      wait_for: host={{ item.public_dns_name }} port=22 delay=60 timeout=320 state=started
+      with_items: ec2.instances

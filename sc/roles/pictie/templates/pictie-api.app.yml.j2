@@ -1,0 +1,19 @@
+development:
+  db:
+    host: 0.0.0.0
+    database: pictie_development
+  storage: './db'
+  key: 'holyshit'
+  # key: 'go0ddaytodie'
+staging:
+  db:
+    host: 0.0.0.0
+    database: pictie
+  storage: './db/pictures'
+  key: 'go0ddaytodie'
+production:
+  db:
+    host: 0.0.0.0
+    database: pictie
+  storage: '/var/lib/pictures'
+  key: '{{ pictie_hash_key }}'

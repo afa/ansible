@@ -1,0 +1,10 @@
+[program:priceapi]
+command={{ rbenv_path }}/shims/bundle exec thin -C {{ priceapi_dir }}/shared/config/thin/{{ priceapi_config.environment }}.yml -e {{ priceapi_config.environment }} start
+user=rbdev
+directory={{ priceapi_dir }}/current
+process_name=%(program_name)s
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile={{ priceapi_dir }}/shared/log/thin.log

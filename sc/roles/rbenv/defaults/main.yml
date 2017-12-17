@@ -1,0 +1,5 @@
+---
+# defaults file for rbenv
+rbenv_path: "/home/{{ rbenv_owner }}/.rbenv"
+rbenv_owner: "rbdev"
+ruby_version: "2.1.5"

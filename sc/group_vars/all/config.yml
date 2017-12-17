@@ -1,0 +1,5 @@
+toprater_dir: "/home/rbdev/toprater"
+rbenv_path: "/home/{{ rbenv_owner }}/.rbenv"
+rbenv_owner: "rbdev"
+rbenv_home: "/home/rbdev"
+ruby_version: "2.1.5"

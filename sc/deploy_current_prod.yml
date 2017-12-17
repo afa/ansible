@@ -1,0 +1,35 @@
+# This playbook allows to setup fresh provisioned vms with sentiweb-api, priceapi, info_api, toprater
+# Please specify correct mongo and elastic address in sentimeta-api role vars
+# Uncomment the necessary lines to install component
+# Specify the correct host name
+
+- hosts: "tag_Name_release_21_04_2015"
+  gather_facts: True
+  roles:
+  roles:
+#    - role: default
+#    - role: zabbix-agent
+#    - role: collectd
+#    - role: mongodb
+#    - role: java
+#    - role: elastic
+#    - role: sentimeta-api
+#      elastic:
+#        uri: "127.0.0.1:9200"
+#      mongo:
+#        uri: "mongodb://127.0.0.1:27017"
+#        dbname: "prod"
+#    - role: frontend
+#    - role: priceapi
+#    - role: info_api
+#      release_tag: "v006"
+#    - role: toprater
+#    - role: php-frontend
+#    - role: widgets
+#      env: "production"
+#    - role: pictie
+#      release_tag: 'master'
+    - role: crowd
+      release_tag: "master"
+      env: "production"
+      db_env: "production"

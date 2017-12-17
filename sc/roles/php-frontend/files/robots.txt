@@ -1,0 +1,9 @@
+Sitemap: https://toprater.com/sitemap.xml
+User-agent: *
+Disallow: /ru
+Disallow: /en/restaurants/
+Disallow: /en/companies/
+Host: https://toprater.com
+
+User-agent: ia_archiver
+Disallow: /

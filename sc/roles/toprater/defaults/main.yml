@@ -1,0 +1,6 @@
+---
+toprater_dir: "/home/rbdev/toprater"
+toprater_config:
+  environment: "production"
+
+
