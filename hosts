@@ -12,3 +12,6 @@ project.megarulez.ru
 
 [web:children]
 local
+
+[rm-pvt]
+b000495
